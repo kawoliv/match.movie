@@ -15,3 +15,18 @@ export async function getPopularMovies(): Promise<MovieListResponse> {
   return response.json();
 }
 
+export async function searchMovies(query: string): Promise<MovieListResponse>{
+  const url = `${BASE_URL}/search/movie?api_key=${API_KEY}&language=pt-BR&query=${encodeURIComponent(
+    query
+  )}`;
+
+  const response = await fetch(url);
+
+    if (!response.ok){
+      throw new Error(`TMDB request failed: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+
