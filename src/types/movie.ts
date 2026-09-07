@@ -3,6 +3,7 @@ export interface Movie {
   title: string;
   overview: string;
   poster_path: string | null;
+  backdrop_path: string | null;
   release_date: string;
   vote_average: number;
 }
@@ -14,14 +15,12 @@ export interface MovieListResponse {
 }
 
 export interface Genre {
-  id:number;
-  name:string;
+  id: number;
+  name: string;
 }
 
-export interface MovieDetails extends Movie{
-  genres:Genre[];
-  runtime:number;
-  tagline:string;
-  backdrop_path:string | null;
+export interface MovieDetails extends Movie {
+  genres: Genre[];
+  runtime: number;
+  tagline: string;
 }
-

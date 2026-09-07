@@ -1,42 +1,48 @@
-"use client"
+"use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import { Movie } from "@/types/movie"
+import { useCallback, useState } from "react";
+import { Movie } from "@/types/movie";
 import SearchBar from "@/components/SearchBar";
-import Link from "next/link";
+import MovieCard from "@/components/MovieCard";
 
-interface MovieGridProps{
-    initialMovies: Movie[];
+interface MovieGridProps {
+  initialMovies: Movie[];
 }
 
-export default function MovieGrid({initialMovies}:MovieGridProps){
-    const [movies,setMovies] = useState(initialMovies);
+export default function MovieGrid({ initialMovies }: MovieGridProps) {
+  const [results, setResults] = useState<Movie[]>([]);
+  const [query, setQuery] = useState("");
 
-    return(
-        <>
-        <SearchBar onResults={setMovies}/>
+  const handleResults = useCallback((movies: Movie[], searchQuery: string) => {
+    setResults(movies);
+    setQuery(searchQuery);
+  }, []);
 
-        <div className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {movies.map((movie) => (
-                <div key={movie.id} className="group flex flex-col gap-2">
-  <Link href={`/filme/${movie.id}`}>
-    {movie.poster_path && (
-      <Image
-        src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
-        alt={movie.title}
-        width={342}
-        height={513}
-        className="rounded-lg object-cover transition-transform duration-300 group-hover:scale-105"
-      />
-    )}
-    <p className="text-sm font-medium transition-colors group-hover:text-red-500">
-      {movie.title}
-    </p>
-  </Link>
-</div>
-            ))}
+  const movies = query ? results : initialMovies;
+
+  return (
+    <>
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <h2 className="flex items-center gap-3 font-display text-3xl tracking-wide">
+          <span className="h-7 w-1 rounded-full bg-red-600" />
+          {query ? "Resultados da busca" : "Filmes populares"}
+        </h2>
+
+        <SearchBar onResults={handleResults} />
+      </div>
+
+      {movies.length === 0 ? (
+        <p className="mt-16 text-center text-sm text-zinc-500">
+          Nenhum filme encontrado para{" "}
+          <span className="text-zinc-300">&ldquo;{query}&rdquo;</span>.
+        </p>
+      ) : (
+        <div className="mt-10 grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+          {movies.map((movie) => (
+            <MovieCard key={movie.id} movie={movie} />
+          ))}
         </div>
+      )}
     </>
   );
 }
