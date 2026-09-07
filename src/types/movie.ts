@@ -22,4 +22,6 @@ export interface MovieDetails extends Movie{
   genres:Genre[];
   runtime:number;
   tagline:string;
+  backdrop_path:string | null;
 }
+
