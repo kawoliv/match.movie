@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { Movie } from "@/types/movie";
+import { useCallback, useState, useEffect, useRef } from "react";
+import { Movie, MovieListResponse } from "@/types/movie";
 import SearchBar from "@/components/SearchBar";
 import MovieCard from "@/components/MovieCard";
 
@@ -18,26 +18,49 @@ export default function MovieGrid({ initialMovies }: MovieGridProps) {
 
   const [results, setResults] = useState<Movie[]>([]);
   const [query, setQuery] = useState("");
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   const handleResults = useCallback((movies: Movie[], searchQuery: string) => {
     setResults(movies);
     setQuery(searchQuery);
   }, []);
 
-  async function loadMore(){
+  const loadMore = useCallback(async () => {
     if (isLoading || !hasMore) return;
 
     setIsLoading(true);
 
     const nextPage = page + 1;
     const response = await fetch(`/api/movies?page=${nextPage}`);
-    const data = await response.json();
+    const data : MovieListResponse = await response.json();
 
-    setPopularMovies((current) => [...current, ...data.results]);
+    setPopularMovies((current) => {
+      const idsAtuais = new Set(current.map((movie) => movie.id));
+      const novos = data.results.filter((movie) => !idsAtuais.has(movie.id));
+      return [...current, ...novos];
+    });
     setPage(nextPage);
     setHasMore(nextPage < data.total_pages);
-    setIsLoading(false)
-  }
+    setIsLoading(false);
+  }, [isLoading, hasMore, page]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if(!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) =>{
+        if(entries[0].isIntersecting){
+          loadMore();
+        }
+      },
+      {rootMargin:"300px"}
+    );
+
+    observer.observe(sentinel);
+
+    return() => observer.disconnect(); 
+   }, [loadMore, query]);
 
   const movies = query ? results : popularMovies;
 
@@ -66,14 +89,8 @@ export default function MovieGrid({ initialMovies }: MovieGridProps) {
       )}
 
       {!query && hasMore && (
-        <div className="mt-12 flex justify-center">
-          <button
-            onClick={loadMore}
-            disabled={isLoading}
-            className="rounded-lg border border-white/10 bg-zinc-900 px-6 py-3 text-sm font-medium transition-colors hover:bg-zinc-800 disabled:opacity-50"
-            >
-              {isLoading?"Carregando..." : "Carregar mais"}
-          </button>
+        <div ref={sentinelRef} className="flex justify-center py-12">
+          <span className="text-sm text-zinc-500">Carregando mais filmes...</span>
         </div>
       )}
     </>
