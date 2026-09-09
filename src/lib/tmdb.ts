@@ -4,8 +4,8 @@ import { MovieDetails } from "@/types/movie";
 const BASE_URL = "https://api.themoviedb.org/3";
 const API_KEY = process.env.TMDB_API_KEY;
 
-export async function getPopularMovies(): Promise<MovieListResponse> {
-  const url = `${BASE_URL}/movie/popular?api_key=${API_KEY}&language=pt-BR`;
+export async function getPopularMovies(page = 1): Promise<MovieListResponse> {
+  const url = `${BASE_URL}/movie/popular?api_key=${API_KEY}&language=pt-BR&page=${page}`;
 
   const response = await fetch(url);
 

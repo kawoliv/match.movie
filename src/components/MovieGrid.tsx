@@ -10,6 +10,12 @@ interface MovieGridProps {
 }
 
 export default function MovieGrid({ initialMovies }: MovieGridProps) {
+
+  const [popularMovies, setPopularMovies] = useState(initialMovies);
+  const [page,setPage] = useState(1);
+  const[hasMore, setHasMore] = useState(true);
+  const[isLoading, setIsLoading] = useState(false);
+
   const [results, setResults] = useState<Movie[]>([]);
   const [query, setQuery] = useState("");
 
@@ -18,7 +24,22 @@ export default function MovieGrid({ initialMovies }: MovieGridProps) {
     setQuery(searchQuery);
   }, []);
 
-  const movies = query ? results : initialMovies;
+  async function loadMore(){
+    if (isLoading || !hasMore) return;
+
+    setIsLoading(true);
+
+    const nextPage = page + 1;
+    const response = await fetch(`/api/movies?page=${nextPage}`);
+    const data = await response.json();
+
+    setPopularMovies((current) => [...current, ...data.results]);
+    setPage(nextPage);
+    setHasMore(nextPage < data.total_pages);
+    setIsLoading(false)
+  }
+
+  const movies = query ? results : popularMovies;
 
   return (
     <>
@@ -41,6 +62,18 @@ export default function MovieGrid({ initialMovies }: MovieGridProps) {
           {movies.map((movie) => (
             <MovieCard key={movie.id} movie={movie} />
           ))}
+        </div>
+      )}
+
+      {!query && hasMore && (
+        <div className="mt-12 flex justify-center">
+          <button
+            onClick={loadMore}
+            disabled={isLoading}
+            className="rounded-lg border border-white/10 bg-zinc-900 px-6 py-3 text-sm font-medium transition-colors hover:bg-zinc-800 disabled:opacity-50"
+            >
+              {isLoading?"Carregando..." : "Carregar mais"}
+          </button>
         </div>
       )}
     </>
