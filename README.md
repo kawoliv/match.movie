@@ -12,7 +12,7 @@ Projeto de estudo focado em aprender o App Router do Next.js — Server e Client
 - **Destaque (hero)** — o filme mais popular do momento em evidência, com backdrop e nota
 - **Busca** — com _debounce_ de 500ms, evitando uma requisição por tecla digitada
 - **Página de detalhes** — sinopse, gêneros, duração, nota e imagem de fundo do filme
-- **Carregar mais** — paginação incremental da lista de populares
+- **Scroll infinito** — novas páginas carregam sozinhas conforme o usuário rola, via `IntersectionObserver`
 - **Estados de carregamento** — skeletons que imitam o layout final, via `loading.tsx`
 - **Tratamento de erros** — _error boundaries_ com botão de nova tentativa, via `error.tsx`
 
@@ -103,6 +103,9 @@ As páginas são Server Components (buscam dados antes de enviar o HTML pronto).
 **Debounce na busca**
 Cada tecla digitada dispararia uma requisição. Um `setTimeout` de 500ms, cancelado pela função de limpeza do `useEffect` a cada nova tecla, garante que só a última digitação vire uma chamada de verdade.
 
+**Filmes repetidos no scroll infinito**
+O ranking de populares da TMDB é reordenado entre requisições, então um filme da página 1 pode reaparecer na página 2 e quebrar a unicidade das `key` do React. Cada página nova é filtrada contra os IDs já carregados — por isso algumas páginas acrescentam menos de 20 filmes.
+
 **Estado derivado no `MovieGrid`**
 A lista exibida é calculada (`query ? results : popularMovies`) em vez de duplicada em um terceiro estado. Isso evita que as duas fiquem dessincronizadas — limpar o campo de busca volta automaticamente para os populares.
 
@@ -110,7 +113,6 @@ A lista exibida é calculada (`query ? results : popularMovies`) em vez de dupli
 
 ## Próximos passos
 
-- [ ] Scroll infinito (substituir o botão "Carregar mais" por `IntersectionObserver`)
 - [ ] Elenco, trailer e filmes recomendados na página de detalhes
 - [ ] Favoritos persistidos em `localStorage`
 - [ ] Busca refletida na URL (`/busca?q=...`), permitindo compartilhar resultados
